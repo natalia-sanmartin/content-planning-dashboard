@@ -1,1176 +1,438 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Content Planning Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --purple:       #7C3AED;
-      --purple-dark:  #5B21B6;
-      --purple-mid:   #8B5CF6;
-      --purple-light: #DDD6FE;
-      --purple-pale:  #F5F3FF;
-      --blue-pale:    #EFF6FF;
-      --blue-light:   #BFDBFE;
-      --blue-mid:     #93C5FD;
-      --yellow:       #FDE68A;
-      --yellow-warm:  #F59E0B;
-      --yellow-pale:  #FFFBEB;
-      --green-pale:   #F0FDF4;
-      --green-mid:    #6EE7B7;
-      --green-dark:   #065F46;
-      --text-dark:    #1E1229;
-      --text-mid:     #374151;
-      --text-muted:   #9CA3AF;
-      --white:        #FFFFFF;
-      --bg:           #F7F6FB;
-      --border:       #E5E7EB;
-      --accent:       #7C3AED;
-      --rail-w:       72px;
-      --panel-w:      292px;
-      --header-h:     58px;
-    }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--text-dark);
-      height: 100vh;
-      display: flex;
-      overflow: hidden;
-      font-size: 13px;
-    }
-
-    h1, h2, h3, h4,
-    .mode-tab, .section-title,
-    .client-name-header, .card-title-lg,
-    .idea-col-header, .ai-label, .btn-generate,
-    .btn-primary { font-family: 'Space Grotesk', sans-serif; }
-
-    /* ── SCROLLBAR ── */
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-    /* ══════════════════════════════
-       CLIENT RAIL
-    ══════════════════════════════ */
-    .client-rail {
-      width: var(--rail-w);
-      background: var(--white);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 16px 0 20px;
-      gap: 6px;
-      z-index: 10;
-      flex-shrink: 0;
-    }
-
-    .rail-logo {
-      width: 36px; height: 36px;
-      background: var(--purple);
-      border-radius: 9px;
-      display: flex; align-items: center; justify-content: center;
-      color: white;
-      font-weight: 700; font-size: 13px;
-      margin-bottom: 14px;
-    }
-
-    .rail-divider {
-      width: 32px; height: 1px;
-      background: var(--border);
-      margin: 6px 0;
-    }
-
-    .client-slot {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .client-avatar {
-      width: 40px; height: 40px;
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 600; font-size: 12px;
-      cursor: pointer;
-      position: relative;
-      transition: transform 0.15s, box-shadow 0.15s;
-      letter-spacing: 0.02em;
-    }
-    .client-avatar:hover { transform: scale(1.06); box-shadow: 0 3px 10px rgba(0,0,0,.10); }
-
-    .client-avatar.active::before {
-      content: '';
-      position: absolute;
-      left: -16px; top: 50%;
-      transform: translateY(-50%);
-      width: 3px; height: 22px;
-      border-radius: 0 2px 2px 0;
-      background: var(--accent);
-      transition: background 0.3s;
-    }
-
-    .fill-bar {
-      width: 28px; height: 3px;
-      background: var(--border);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-    .fill-bar-inner {
-      height: 100%;
-      border-radius: 2px;
-      transition: width 0.4s, background 0.3s;
-    }
-
-    /* ══════════════════════════════
-       MAIN COLUMN
-    ══════════════════════════════ */
-    .main-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    /* ── HEADER BAND ── */
-    .header-band {
-      height: var(--header-h);
-      background: var(--white);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      padding: 0 24px;
-      gap: 20px;
-      position: relative;
-      flex-shrink: 0;
-    }
-    .header-band::after {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: var(--accent);
-      transition: background 0.35s;
-    }
-
-    .client-name-header {
-      font-size: 17px;
-      font-weight: 700;
-      color: var(--text-dark);
-      min-width: 150px;
-      transition: color 0.3s;
-    }
-
-    .month-nav {
-      display: flex; align-items: center; gap: 6px;
-    }
-    .month-btn {
-      width: 28px; height: 28px;
-      border: 1px solid var(--border);
-      background: white;
-      border-radius: 6px;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      color: var(--text-mid);
-      font-size: 14px;
-      transition: background 0.15s, border-color 0.15s;
-    }
-    .month-btn:hover { background: var(--purple-pale); border-color: var(--purple-light); }
-
-    .month-label {
-      font-weight: 600; font-size: 13px;
-      color: var(--text-dark);
-      min-width: 110px;
-      text-align: center;
-    }
-
-    .mode-tabs {
-      display: flex; gap: 3px;
-      background: var(--bg);
-      padding: 4px;
-      border-radius: 9px;
-      margin-left: auto;
-    }
-    .mode-tab {
-      padding: 5px 16px;
-      border-radius: 6px;
-      font-size: 13px; font-weight: 500;
-      cursor: pointer;
-      color: var(--text-muted);
-      border: none; background: none;
-      transition: all 0.15s;
-    }
-    .mode-tab:hover:not(.active) { color: var(--text-mid); }
-    .mode-tab.active {
-      background: var(--white);
-      color: var(--accent);
-      box-shadow: 0 1px 4px rgba(0,0,0,.09);
-      transition: color 0.3s;
-    }
-
-    /* ── WORKSPACE AREA ── */
-    .workspace-area {
-      flex: 1;
-      display: flex;
-      overflow: hidden;
-    }
-
-    .active-workspace {
-      flex: 1;
-      overflow-y: auto;
-      padding: 24px;
-    }
-
-    /* ══════════════════════════════
-       CONTEXT PANEL
-    ══════════════════════════════ */
-    .context-panel {
-      width: var(--panel-w);
-      background: var(--blue-pale);
-      border-left: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      overflow-y: auto;
-      padding: 18px 14px;
-      gap: 14px;
-      flex-shrink: 0;
-    }
-
-    /* ── CARDS ── */
-    .card {
-      background: var(--white);
-      border-radius: 12px;
-      padding: 14px;
-      border: 1px solid var(--border);
-    }
-
-    .card-label {
-      font-size: 10px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.09em;
-      color: var(--text-muted);
-      margin-bottom: 10px;
-    }
-
-    /* ── PILLAR CHIPS ── */
-    .chip {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 3px 9px;
-      border-radius: 20px;
-      font-size: 11px; font-weight: 500;
-      white-space: nowrap;
-    }
-    .chip-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    /* ── BADGES ── */
-    .badge {
-      display: inline-flex; align-items: center;
-      padding: 2px 7px;
-      border-radius: 20px;
-      font-size: 10px; font-weight: 600;
-    }
-
-    /* ── STATS ── */
-    .stat-row {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 6px;
-    }
-    .stat-label { font-size: 12px; color: var(--text-muted); }
-    .stat-value { font-weight: 700; font-size: 14px; color: var(--text-dark); }
-
-    .progress-bar {
-      width: 100%; height: 6px;
-      background: var(--border);
-      border-radius: 3px; overflow: hidden;
-      margin-top: 3px;
-    }
-    .progress-fill {
-      height: 100%; border-radius: 3px;
-      background: var(--accent);
-      transition: width 0.5s, background 0.3s;
-    }
-
-    /* ── GAP ROWS ── */
-    .gap-row {
-      display: flex; align-items: center; gap: 8px;
-      padding: 6px 0;
-      border-bottom: 1px solid var(--border);
-      font-size: 11px;
-    }
-    .gap-row:last-child { border-bottom: none; }
-    .gap-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-
-    /* ── AI GENERATOR ── */
-    .ai-generator {
-      background: var(--white);
-      border-radius: 12px;
-      padding: 14px;
-      border: 1px solid var(--border);
-    }
-    .ai-label {
-      font-size: 10px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.09em;
-      color: var(--accent);
-      margin-bottom: 10px;
-      display: flex; align-items: center; gap: 5px;
-      transition: color 0.3s;
-    }
-    .ai-select, .ai-textarea {
-      width: 100%;
-      padding: 7px 10px;
-      border: 1px solid var(--border);
-      border-radius: 7px;
-      font-size: 12px;
-      font-family: 'Inter', sans-serif;
-      color: var(--text-dark);
-      background: white;
-      margin-bottom: 8px;
-    }
-    .ai-select {
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239CA3AF' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 10px center;
-    }
-    .ai-textarea { resize: none; }
-    .ai-select:focus, .ai-textarea:focus {
-      outline: none;
-      border-color: var(--purple-light);
-      box-shadow: 0 0 0 3px rgba(124,58,237,.07);
-    }
-    .btn-generate {
-      width: 100%; padding: 9px;
-      background: var(--accent);
-      color: white; border: none;
-      border-radius: 8px;
-      font-size: 13px; font-weight: 600;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 6px;
-      transition: background 0.2s, filter 0.2s;
-    }
-    .btn-generate:hover { filter: brightness(1.1); }
-
-    /* ══════════════════════════════
-       MODE PANELS
-    ══════════════════════════════ */
-    .mode-panel { display: none; }
-    .mode-panel.active { display: block; }
-
-    .section-title {
-      font-size: 16px; font-weight: 700;
-      color: var(--text-dark);
-      margin-bottom: 18px;
-    }
-
-    /* ── STRATEGY ── */
-    .pillar-card {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 14px 14px 14px 16px;
-      margin-bottom: 10px;
-      border-left: 4px solid var(--purple);
-    }
-    .pillar-name {
-      font-weight: 600; font-size: 13px;
-      margin-bottom: 4px;
-    }
-    .pillar-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
-    .pillar-eg {
-      margin-top: 8px;
-      padding: 6px 10px;
-      background: var(--bg);
-      border-radius: 6px;
-      font-size: 11px; color: var(--text-mid);
-      font-style: italic;
-    }
-
-    .mix-bar {
-      display: flex; height: 10px;
-      border-radius: 5px; overflow: hidden;
-      gap: 2px; margin-top: 8px;
-    }
-    .mix-seg { border-radius: 2px; }
-
-    .btn-primary {
-      padding: 8px 18px;
-      background: var(--accent);
-      color: white; border: none;
-      border-radius: 8px;
-      font-size: 13px; font-weight: 600;
-      cursor: pointer;
-      transition: filter 0.15s;
-    }
-    .btn-primary:hover { filter: brightness(1.1); }
-
-    /* ── IDEATION ── */
-    .idea-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-
-    .idea-col-header {
-      font-size: 13px; font-weight: 600;
-      color: var(--text-dark);
-      margin-bottom: 12px;
-      display: flex; align-items: center; justify-content: space-between;
-    }
-
-    .idea-count {
-      padding: 2px 8px;
-      border-radius: 10px;
-      font-size: 11px; font-weight: 600;
-    }
-
-    .idea-card {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px;
-      margin-bottom: 8px;
-      cursor: pointer;
-      transition: border-color 0.15s, box-shadow 0.15s, opacity 0.25s, transform 0.25s;
-    }
-    .idea-card:hover {
-      border-color: var(--purple-light);
-      box-shadow: 0 2px 10px rgba(124,58,237,.08);
-    }
-
-    .idea-headline {
-      font-size: 12px; font-weight: 500;
-      color: var(--text-dark); line-height: 1.45;
-      margin-bottom: 8px;
-    }
-
-    .idea-meta { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
-
-    .fmt-badge {
-      padding: 2px 7px; border-radius: 4px;
-      font-size: 10px; font-weight: 500;
-      background: var(--blue-pale); color: #1D4ED8;
-    }
-    .effort-badge {
-      padding: 2px 7px; border-radius: 4px;
-      font-size: 10px; font-weight: 600;
-      background: var(--yellow-pale); color: var(--yellow-warm);
-    }
-    .date-badge {
-      padding: 2px 7px; border-radius: 4px;
-      font-size: 10px; font-weight: 600;
-      background: var(--yellow); color: #92400E;
-    }
-
-    .idea-actions { display: flex; gap: 6px; margin-top: 9px; }
-
-    .btn-accept {
-      flex: 1; padding: 5px;
-      background: var(--accent);
-      color: white; border: none;
-      border-radius: 6px;
-      font-size: 11px; font-weight: 500;
-      cursor: pointer;
-      font-family: 'Inter', sans-serif;
-      transition: filter 0.15s;
-    }
-    .btn-accept:hover { filter: brightness(1.1); }
-
-    .btn-discard {
-      padding: 5px 10px;
-      background: transparent;
-      color: var(--text-muted);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      font-size: 11px; cursor: pointer;
-      font-family: 'Inter', sans-serif;
-    }
-    .btn-discard:hover { border-color: #FCA5A5; color: #DC2626; }
-
-    .btn-place {
-      width: 100%; padding: 5px;
-      background: var(--blue-pale);
-      color: #1E40AF;
-      border: none; border-radius: 6px;
-      font-size: 11px; font-weight: 500;
-      cursor: pointer; margin-top: 8px;
-      font-family: 'Inter', sans-serif;
-    }
-
-    /* ── CALENDAR ── */
-    .cal-legend {
-      display: flex; gap: 8px; flex-wrap: wrap;
-      margin-bottom: 14px;
-    }
-
-    .cal-toolbar {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 18px;
-    }
-
-    .cal-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 4px;
-    }
-
-    .cal-head {
-      text-align: center;
-      font-size: 10px; font-weight: 700;
-      color: var(--text-muted);
-      padding: 4px 0 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-
-    .cal-day {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 7px;
-      min-height: 86px;
-      display: flex; flex-direction: column; gap: 3px;
-      transition: border-color 0.15s;
-      cursor: pointer;
-    }
-    .cal-day:hover { border-color: var(--blue-mid); }
-    .cal-day.other { background: #FAFAFA; opacity: .45; pointer-events: none; }
-    .cal-day.today { border-color: var(--purple-light); background: var(--purple-pale); }
-
-    .day-num {
-      font-size: 10px; font-weight: 700;
-      color: var(--text-muted);
-      margin-bottom: 2px;
-      font-family: 'Space Grotesk', sans-serif;
-    }
-    .today .day-num { color: var(--accent); }
-
-    .c-slot {
-      padding: 3px 6px;
-      border-radius: 4px;
-      font-size: 10px; font-weight: 500;
-      line-height: 1.3;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-
-    .e-slot {
-      border: 1.5px dashed var(--border);
-      border-radius: 4px;
-      padding: 3px 6px;
-      font-size: 10px; color: var(--text-muted);
-      text-align: center; cursor: pointer;
-    }
-    .e-slot:hover { border-color: var(--purple-light); background: var(--purple-pale); color: var(--accent); }
-  </style>
+<meta charset="UTF-8"/>
+<title>Content Planning Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --purple:#7C3AED;--purple-dark:#5B21B6;--purple-light:#DDD6FE;--purple-pale:#F5F3FF;
+  --blue-pale:#EFF6FF;--blue-light:#BFDBFE;--blue-mid:#93C5FD;
+  --yellow:#FDE68A;--yellow-warm:#F59E0B;--yellow-pale:#FFFBEB;
+  --text-dark:#1E1229;--text-mid:#374151;--text-muted:#9CA3AF;
+  --white:#FFFFFF;--bg:#F7F6FB;--border:#E5E7EB;--accent:#7C3AED;
+  --rail-w:72px;--panel-w:292px;--header-h:58px;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text-dark);height:100vh;display:flex;overflow:hidden;font-size:13px}
+h1,h2,h3,h4,.mode-tab,.section-title,.client-name-header,.idea-col-header,.ai-label,.btn-generate,.btn-primary{font-family:'Space Grotesk',sans-serif}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.client-rail{width:var(--rail-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:16px 0 20px;gap:6px;z-index:10;flex-shrink:0}
+.rail-logo{width:36px;height:36px;background:var(--purple);border-radius:9px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:13px;margin-bottom:14px;font-family:'Space Grotesk',sans-serif}
+.rail-divider{width:32px;height:1px;background:var(--border);margin:6px 0}
+.client-slot{display:flex;flex-direction:column;align-items:center;gap:4px}
+.client-avatar{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px;cursor:pointer;position:relative;transition:transform .15s,box-shadow .15s;letter-spacing:.02em;font-family:'Space Grotesk',sans-serif}
+.client-avatar:hover{transform:scale(1.06);box-shadow:0 3px 10px rgba(0,0,0,.10)}
+.client-avatar.active::before{content:'';position:absolute;left:-16px;top:50%;transform:translateY(-50%);width:3px;height:22px;border-radius:0 2px 2px 0;background:var(--accent);transition:background .3s}
+.fill-bar{width:28px;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.fill-bar-inner{height:100%;border-radius:2px;transition:width .4s,background .3s}
+.main-content{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.header-band{height:var(--header-h);background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:20px;position:relative;flex-shrink:0}
+.header-band::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent);transition:background .35s}
+.client-name-header{font-size:17px;font-weight:700;color:var(--text-dark);min-width:150px}
+.month-nav{display:flex;align-items:center;gap:6px}
+.month-btn{width:28px;height:28px;border:1px solid var(--border);background:white;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-mid);font-size:14px;transition:background .15s,border-color .15s}
+.month-btn:hover{background:var(--purple-pale);border-color:var(--purple-light)}
+.month-label{font-weight:600;font-size:13px;color:var(--text-dark);min-width:110px;text-align:center;font-family:'Space Grotesk',sans-serif}
+.mode-tabs{display:flex;gap:3px;background:var(--bg);padding:4px;border-radius:9px;margin-left:auto}
+.mode-tab{padding:5px 16px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;color:var(--text-muted);border:none;background:none;transition:all .15s}
+.mode-tab:hover:not(.active){color:var(--text-mid)}
+.mode-tab.active{background:var(--white);color:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.09)}
+.workspace-area{flex:1;display:flex;overflow:hidden}
+.active-workspace{flex:1;overflow-y:auto;padding:24px}
+.mode-panel{display:none}.mode-panel.active{display:block}
+.context-panel{width:var(--panel-w);background:var(--blue-pale);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:18px 14px;gap:14px;flex-shrink:0}
+.card{background:var(--white);border-radius:12px;padding:14px;border:1px solid var(--border)}
+.card-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);margin-bottom:10px;font-family:'Space Grotesk',sans-serif}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500;white-space:nowrap}
+.chip-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.stat-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.stat-label{font-size:12px;color:var(--text-muted)}
+.stat-value{font-weight:700;font-size:14px;color:var(--text-dark);font-family:'Space Grotesk',sans-serif}
+.progress-bar{width:100%;height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:3px}
+.progress-fill{height:100%;border-radius:3px;background:var(--accent);transition:width .5s,background .3s}
+.gap-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px}
+.gap-row:last-child{border-bottom:none}
+.gap-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ai-generator{background:var(--white);border-radius:12px;padding:14px;border:1px solid var(--border)}
+.ai-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--accent);margin-bottom:10px;display:flex;align-items:center;gap:5px}
+.ai-select,.ai-textarea{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:7px;font-size:12px;font-family:'Inter',sans-serif;color:var(--text-dark);background:white;margin-bottom:8px}
+.ai-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239CA3AF' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.ai-textarea{resize:none}
+.ai-select:focus,.ai-textarea:focus{outline:none;border-color:var(--purple-light);box-shadow:0 0 0 3px rgba(124,58,237,.07)}
+.btn-generate{width:100%;padding:9px;background:var(--accent);color:white;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:filter .2s}
+.btn-generate:hover{filter:brightness(1.1)}
+.btn-primary{padding:8px 18px;background:var(--accent);color:white;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:filter .15s}
+.btn-primary:hover{filter:brightness(1.1)}
+.pillar-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:14px 14px 14px 16px;margin-bottom:10px;border-left:4px solid var(--purple)}
+.pillar-name{font-weight:600;font-size:13px;margin-bottom:4px;font-family:'Space Grotesk',sans-serif}
+.pillar-desc{font-size:12px;color:var(--text-muted);line-height:1.5}
+.pillar-eg{margin-top:8px;padding:6px 10px;background:var(--bg);border-radius:6px;font-size:11px;color:var(--text-mid);font-style:italic}
+.mix-bar{display:flex;height:10px;border-radius:5px;overflow:hidden;gap:2px;margin-top:8px}
+.mix-seg{border-radius:2px}
+.idea-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.idea-col-header{font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.idea-count{padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.idea-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;transition:border-color .15s,box-shadow .15s}
+.idea-card:hover{border-color:var(--purple-light);box-shadow:0 2px 10px rgba(124,58,237,.08)}
+.idea-headline{font-size:12px;font-weight:500;color:var(--text-dark);line-height:1.45;margin-bottom:8px}
+.idea-meta{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.fmt-badge{padding:2px 7px;border-radius:4px;font-size:10px;font-weight:500;background:var(--blue-pale);color:#1D4ED8}
+.effort-badge{padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;background:var(--yellow-pale);color:var(--yellow-warm)}
+.date-badge{padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;background:var(--yellow);color:#92400E}
+.idea-actions{display:flex;gap:6px;margin-top:9px}
+.btn-accept{flex:1;padding:5px;background:var(--accent);color:white;border:none;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:filter .15s}
+.btn-accept:hover{filter:brightness(1.1)}
+.btn-discard{padding:5px 10px;background:transparent;color:var(--text-muted);border:1px solid var(--border);border-radius:6px;font-size:11px;cursor:pointer;font-family:'Inter',sans-serif}
+.btn-discard:hover{border-color:#FCA5A5;color:#DC2626}
+.btn-place{width:100%;padding:5px;background:var(--blue-pale);color:#1E40AF;border:none;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif}
+.empty-col{text-align:center;padding:40px 20px;color:var(--text-muted);background:var(--bg);border-radius:10px;border:1.5px dashed var(--border);font-size:13px}
+.cal-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.cal-legend{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-head{text-align:center;font-size:10px;font-weight:700;color:var(--text-muted);padding:4px 0 8px;text-transform:uppercase;letter-spacing:.06em;font-family:'Space Grotesk',sans-serif}
+.cal-day{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:7px;min-height:86px;display:flex;flex-direction:column;gap:3px;transition:border-color .15s}
+.cal-day:hover:not(.other){border-color:var(--blue-mid)}
+.cal-day.other{background:#FAFAFA;opacity:.45;pointer-events:none}
+.cal-day.today{border-color:var(--purple-light);background:var(--purple-pale)}
+.cal-day.placing{cursor:pointer;border:2px dashed var(--yellow-warm) !important}
+.cal-day.placing:hover{background:var(--yellow-pale);border-style:solid !important}
+.day-num{font-size:10px;font-weight:700;color:var(--text-muted);margin-bottom:2px;font-family:'Space Grotesk',sans-serif}
+.today .day-num{color:var(--accent)}
+.c-slot{padding:3px 6px;border-radius:4px;font-size:10px;font-weight:500;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;transition:opacity .15s}
+.c-slot:hover{opacity:.8}
+.e-slot{border:1.5px dashed var(--border);border-radius:4px;padding:3px 6px;font-size:10px;color:var(--text-muted);text-align:center;cursor:pointer}
+.e-slot:hover{border-color:var(--purple-light);background:var(--purple-pale);color:var(--accent)}
+.placement-banner{background:var(--yellow);border:1.5px solid var(--yellow-warm);border-radius:10px;padding:10px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#78350F;font-family:'Space Grotesk',sans-serif;font-weight:500}
+.cancel-btn{background:none;border:1px solid #92400E;border-radius:6px;padding:4px 12px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#78350F}
+.cancel-btn:hover{background:rgba(0,0,0,.06)}
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:99;display:none}
+.drawer-overlay.open{display:block}
+.detail-drawer{position:fixed;right:0;top:0;bottom:0;width:320px;background:white;border-left:1px solid var(--border);z-index:100;padding:24px;transform:translateX(100%);transition:transform .25s;overflow-y:auto;box-shadow:-4px 0 24px rgba(0,0,0,.08)}
+.detail-drawer.open{transform:translateX(0)}
+.section-title{font-size:16px;font-weight:700;color:var(--text-dark);margin-bottom:18px}
+</style>
 </head>
 <body>
 
-<!-- ══ CLIENT RAIL ══ -->
-<nav class="client-rail" id="rail">
+<nav class="client-rail">
   <div class="rail-logo">CP</div>
   <div class="rail-divider"></div>
-
   <div class="client-slot">
-    <div class="client-avatar active" data-client="0"
-         style="background:#EDE9FE;color:#5B21B6"
-         onclick="switchClient(0)" title="EcoThread">ET</div>
-    <div class="fill-bar"><div class="fill-bar-inner" id="fill-0" style="width:70%;background:#7C3AED"></div></div>
+    <div class="client-avatar" data-ci="0" style="background:#EDE9FE;color:#5B21B6" onclick="switchClient(0)">ET</div>
+    <div class="fill-bar"><div class="fill-bar-inner" id="fill-0"></div></div>
   </div>
-
   <div class="client-slot">
-    <div class="client-avatar" data-client="1"
-         style="background:#DBEAFE;color:#1E40AF"
-         onclick="switchClient(1)" title="Nova Finance">NF</div>
-    <div class="fill-bar"><div class="fill-bar-inner" id="fill-1" style="width:44%;background:#2563EB"></div></div>
+    <div class="client-avatar" data-ci="1" style="background:#DBEAFE;color:#1E40AF" onclick="switchClient(1)">NF</div>
+    <div class="fill-bar"><div class="fill-bar-inner" id="fill-1"></div></div>
   </div>
-
   <div class="client-slot">
-    <div class="client-avatar" data-client="2"
-         style="background:#FFFBEB;color:#92400E"
-         onclick="switchClient(2)" title="Bloom Wellness">BW</div>
-    <div class="fill-bar"><div class="fill-bar-inner" id="fill-2" style="width:22%;background:#D97706"></div></div>
+    <div class="client-avatar" data-ci="2" style="background:#FFFBEB;color:#92400E" onclick="switchClient(2)">BW</div>
+    <div class="fill-bar"><div class="fill-bar-inner" id="fill-2"></div></div>
   </div>
 </nav>
 
-<!-- ══ MAIN CONTENT ══ -->
 <div class="main-content">
-
-  <!-- HEADER BAND -->
-  <header class="header-band" id="headerBand">
-    <div class="client-name-header" id="clientNameHeader">EcoThread</div>
-
+  <header class="header-band">
+    <div class="client-name-header" id="clientNameHeader"></div>
     <div class="month-nav">
-      <button class="month-btn" onclick="changeMonth(-1)">‹</button>
-      <div class="month-label" id="monthLabel">May 2026</div>
-      <button class="month-btn" onclick="changeMonth(1)">›</button>
+      <button class="month-btn" onclick="changeMonth(-1)">&#8249;</button>
+      <div class="month-label" id="monthLabel"></div>
+      <button class="month-btn" onclick="changeMonth(1)">&#8250;</button>
     </div>
-
     <div class="mode-tabs">
       <button class="mode-tab" onclick="switchMode('strategy')">Strategy</button>
       <button class="mode-tab" onclick="switchMode('ideate')">Ideate</button>
-      <button class="mode-tab active" onclick="switchMode('calendar')">Calendar</button>
+      <button class="mode-tab" onclick="switchMode('calendar')">Calendar</button>
     </div>
   </header>
 
-  <!-- WORKSPACE -->
   <div class="workspace-area">
-
-    <!-- ══ ACTIVE WORKSPACE ══ -->
     <main class="active-workspace">
-
-      <!-- ─── STRATEGY MODE ─── -->
-      <div class="mode-panel" id="strategyPanel">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
-          <h2 class="section-title" style="margin-bottom:0" id="strategyTitle">Content Strategy — EcoThread</h2>
-          <button class="btn-primary">Confirm Strategy →</button>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px">
-
-          <!-- LEFT: Pillars -->
-          <div>
-            <div class="card-label">Content Pillars</div>
-
-            <div class="pillar-card" style="border-left-color:#7C3AED">
-              <div class="pillar-name">🌿 Sustainable Living</div>
-              <div class="pillar-desc">Practical tips and inspiration for eco-conscious lifestyle choices aligned with EcoThread values.</div>
-              <div class="pillar-eg">→ "3 ways to extend the life of your wardrobe this season"</div>
-            </div>
-
-            <div class="pillar-card" style="border-left-color:#93C5FD">
-              <div class="pillar-name">🧵 Behind the Thread</div>
-              <div class="pillar-desc">Brand transparency — sourcing stories, maker spotlights, and production process content.</div>
-              <div class="pillar-eg">→ "Inside our organic cotton supply chain"</div>
-            </div>
-
-            <div class="pillar-card" style="border-left-color:#FCD34D">
-              <div class="pillar-name">⭐ Community Proof</div>
-              <div class="pillar-desc">Customer stories, UGC reposts, real-world styling, and community moments.</div>
-              <div class="pillar-eg">→ "How I styled my EcoThread capsule for 3 seasons"</div>
-            </div>
-
-            <div class="pillar-card" style="border-left-color:#6EE7B7">
-              <div class="pillar-name">📣 Product & Offers</div>
-              <div class="pillar-desc">New arrivals, seasonal drops, and promotional content — capped at 25% of total output.</div>
-              <div class="pillar-eg">→ "New summer linen drop — only 200 pieces"</div>
-            </div>
-          </div>
-
-          <!-- RIGHT: Voice + Mix + Goal -->
-          <div style="display:flex;flex-direction:column;gap:14px">
-
-            <div class="card">
-              <div class="card-label">Brand Voice</div>
-              <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">
-                <span class="chip" style="background:#EDE9FE;color:#5B21B6">Thoughtful</span>
-                <span class="chip" style="background:#EDE9FE;color:#5B21B6">Direct</span>
-                <span class="chip" style="background:#EDE9FE;color:#5B21B6">Grounded</span>
-                <span class="chip" style="background:#FFFBEB;color:#92400E">Warm authority</span>
-                <span class="chip" style="background:#F0FDF4;color:#065F46">No greenwashing</span>
-              </div>
-              <div style="background:var(--bg);padding:9px 10px;border-radius:7px;font-size:11px;color:var(--text-mid);line-height:1.5">
-                <strong>Avoid:</strong> Corporate buzzwords, performative eco claims, trend-chasing language
-              </div>
-            </div>
-
-            <div class="card">
-              <div class="card-label">Content Mix Target — May</div>
-              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-mid);margin-bottom:5px">
-                <span>Educational 40%</span>
-                <span>Social proof 30%</span>
-                <span>Promo 30%</span>
-              </div>
-              <div class="mix-bar">
-                <div class="mix-seg" style="flex:40;background:#7C3AED"></div>
-                <div class="mix-seg" style="flex:30;background:#93C5FD"></div>
-                <div class="mix-seg" style="flex:30;background:#FCD34D"></div>
-              </div>
-            </div>
-
-            <div class="card">
-              <div class="card-label">Monthly Goal</div>
-              <div style="font-size:12px;color:var(--text-dark);line-height:1.55;padding:9px 10px;background:var(--yellow-pale);border-radius:8px;border-left:3px solid var(--yellow-warm)">
-                Drive email sign-ups through educational content and push new summer linen drop in the final week.
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </div>
-
-      <!-- ─── IDEATION MODE ─── -->
-      <div class="mode-panel" id="ideatePanel">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-          <h2 class="section-title" style="margin-bottom:0" id="ideateTitle">Idea Triage — EcoThread · May 2026</h2>
-          <span style="font-size:12px;color:var(--text-muted)">7 accepted · 3 placed on calendar</span>
-        </div>
-
-        <div class="idea-grid">
-
-          <!-- AI Queue -->
-          <div>
-            <div class="idea-col-header">
-              AI Queue
-              <span class="idea-count" style="background:var(--purple-light);color:var(--purple-dark)" id="queueCount">5 ideas</span>
-            </div>
-
-            <div class="idea-card">
-              <div class="idea-headline">"The real cost of fast fashion — and what we're doing differently"</div>
-              <div class="idea-meta">
-                <span class="chip" style="background:#EDE9FE;color:#5B21B6;font-size:10px"><span class="chip-dot" style="background:#7C3AED"></span>Sustainable Living</span>
-                <span class="fmt-badge">Carousel</span>
-                <span class="effort-badge">M</span>
-              </div>
-              <div class="idea-actions">
-                <button class="btn-accept" onclick="acceptIdea(this)">✓ Accept</button>
-                <button class="btn-discard" onclick="discardIdea(this)">✕</button>
-              </div>
-            </div>
-
-            <div class="idea-card">
-              <div class="idea-headline">Meet Amara — the farmer who grows our organic cotton in Tamil Nadu</div>
-              <div class="idea-meta">
-                <span class="chip" style="background:#DBEAFE;color:#1E40AF;font-size:10px"><span class="chip-dot" style="background:#93C5FD"></span>Behind the Thread</span>
-                <span class="fmt-badge">Reel</span>
-                <span class="effort-badge">L</span>
-              </div>
-              <div class="idea-actions">
-                <button class="btn-accept" onclick="acceptIdea(this)">✓ Accept</button>
-                <button class="btn-discard" onclick="discardIdea(this)">✕</button>
-              </div>
-            </div>
-
-            <div class="idea-card">
-              <div class="idea-headline">5 questions to ask before buying any piece of clothing</div>
-              <div class="idea-meta">
-                <span class="chip" style="background:#EDE9FE;color:#5B21B6;font-size:10px"><span class="chip-dot" style="background:#7C3AED"></span>Sustainable Living</span>
-                <span class="fmt-badge">Static</span>
-                <span class="effort-badge">S</span>
-              </div>
-              <div class="idea-actions">
-                <button class="btn-accept" onclick="acceptIdea(this)">✓ Accept</button>
-                <button class="btn-discard" onclick="discardIdea(this)">✕</button>
-              </div>
-            </div>
-
-            <div class="idea-card">
-              <div class="idea-headline">Customer spotlight: "I built my entire summer wardrobe with 6 pieces"</div>
-              <div class="idea-meta">
-                <span class="chip" style="background:#FFFBEB;color:#92400E;font-size:10px"><span class="chip-dot" style="background:#FCD34D"></span>Community Proof</span>
-                <span class="fmt-badge">Carousel</span>
-                <span class="effort-badge">M</span>
-              </div>
-              <div class="idea-actions">
-                <button class="btn-accept" onclick="acceptIdea(this)">✓ Accept</button>
-                <button class="btn-discard" onclick="discardIdea(this)">✕</button>
-              </div>
-            </div>
-
-            <div class="idea-card">
-              <div class="idea-headline">Behind the seams: how we test fabric durability before it ships</div>
-              <div class="idea-meta">
-                <span class="chip" style="background:#DBEAFE;color:#1E40AF;font-size:10px"><span class="chip-dot" style="background:#93C5FD"></span>Behind the Thread</span>
-                <span class="fmt-badge">Story</span>
-                <span class="effort-badge">S</span>
-              </div>
-              <div class="idea-actions">
-                <button class="btn-accept" onclick="acceptIdea(this)">✓ Accept</button>
-                <button class="btn-discard" onclick="discardIdea(this)">✕</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Accepted -->
-          <div>
-            <div class="idea-col-header">
-              Accepted
-              <span class="idea-count" style="background:#D1FAE5;color:#065F46">7 ready</span>
-            </div>
-
-            <div class="idea-card" style="border-left:3px solid #7C3AED">
-              <div class="idea-headline">Why we only use 3 dyes — and what we gave up for that</div>
-              <div class="idea-meta">
-                <span class="chip" style="background:#DBEAFE;color:#1E40AF;font-size:10px"><span class="chip-dot" style="background:#93C5FD"></span>Behind Thread</span>
-                <span class="fmt-badge">Carousel</span>
-                <span class="date-badge">May 5</span>
-              </div>
-            </div>
-
-            <div class="idea-card" style="border-left:3px solid #7C3AED">
-              <div class="idea-headline">The mending kit we include with every order</div>
-              <div class="idea-meta">
-                <span class="chip" style="background:#EDE9FE;color:#5B21B6;font-size:10px"><span class="chip-dot" style="background:#7C3AED"></span>Sustainable</span>
-                <span class="fmt-badge">Reel</span>
-                <span class="date-badge">May 9</span>
-              </div>
-            </div>
-
-            <div class="idea-card" style="border-left:3px solid #7C3AED">
-              <div class="idea-headline">Introducing our summer linen collection — 200 pieces only</div>
-              <div class="idea-meta">
-                <span class="chip" style="background:#F0FDF4;color:#065F46;font-size:10px"><span class="chip-dot" style="background:#6EE7B7"></span>Product</span>
-                <span class="fmt-badge">Carousel</span>
-                <span class="date-badge">May 26</span>
-              </div>
-            </div>
-
-            <div class="idea-card" style="border-left:3px solid var(--border)">
-              <div class="idea-headline">What "certified organic" actually means on a label</div>
-              <div class="idea-meta">
-                <span class="chip" style="background:#EDE9FE;color:#5B21B6;font-size:10px"><span class="chip-dot" style="background:#7C3AED"></span>Sustainable</span>
-                <span class="fmt-badge">Static</span>
-                <span style="font-size:10px;color:var(--text-muted)">Unplaced</span>
-              </div>
-              <button class="btn-place">📅 Place on calendar</button>
-            </div>
-
-            <div class="idea-card" style="border-left:3px solid var(--border)">
-              <div class="idea-headline">3 EcoThread customers, 3 different lifestyles</div>
-              <div class="idea-meta">
-                <span class="chip" style="background:#FFFBEB;color:#92400E;font-size:10px"><span class="chip-dot" style="background:#FCD34D"></span>Community</span>
-                <span class="fmt-badge">Carousel</span>
-                <span style="font-size:10px;color:var(--text-muted)">Unplaced</span>
-              </div>
-              <button class="btn-place">📅 Place on calendar</button>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- ─── CALENDAR MODE ─── -->
-      <div class="mode-panel active" id="calendarPanel">
-
-        <div class="cal-toolbar">
-          <h2 class="section-title" style="margin-bottom:0" id="calTitle">May 2026 — EcoThread</h2>
-          <div style="display:flex;gap:10px;align-items:center">
-            <span style="font-size:12px;color:var(--text-muted)">14 of 20 posts placed</span>
-            <button class="btn-primary" style="font-size:12px;padding:7px 14px">Export Month →</button>
-          </div>
-        </div>
-
-        <div class="cal-legend">
-          <span class="chip" style="background:#EDE9FE;color:#5B21B6;font-size:11px"><span class="chip-dot" style="background:#7C3AED"></span>Sustainable Living</span>
-          <span class="chip" style="background:#DBEAFE;color:#1E40AF;font-size:11px"><span class="chip-dot" style="background:#93C5FD"></span>Behind the Thread</span>
-          <span class="chip" style="background:#FFFBEB;color:#92400E;font-size:11px"><span class="chip-dot" style="background:#FCD34D"></span>Community Proof</span>
-          <span class="chip" style="background:#F0FDF4;color:#065F46;font-size:11px"><span class="chip-dot" style="background:#6EE7B7"></span>Product</span>
-        </div>
-
-        <div class="cal-grid">
-          <!-- Day headers -->
-          <div class="cal-head">Mon</div>
-          <div class="cal-head">Tue</div>
-          <div class="cal-head">Wed</div>
-          <div class="cal-head">Thu</div>
-          <div class="cal-head">Fri</div>
-          <div class="cal-head">Sat</div>
-          <div class="cal-head">Sun</div>
-
-          <!-- Week 0 padding -->
-          <div class="cal-day other"><div class="day-num">28</div></div>
-          <div class="cal-day other"><div class="day-num">29</div></div>
-          <div class="cal-day other"><div class="day-num">30</div></div>
-
-          <!-- May 1 -->
-          <div class="cal-day">
-            <div class="day-num">1</div>
-            <div class="c-slot" style="background:#EDE9FE;color:#5B21B6">5 questions before buying</div>
-          </div>
-          <div class="cal-day"><div class="day-num">2</div><div class="e-slot">+ Add</div></div>
-          <div class="cal-day"><div class="day-num">3</div><div class="e-slot">+ Add</div></div>
-          <div class="cal-day"><div class="day-num">4</div><div class="e-slot">+ Add</div></div>
-
-          <!-- Week 2 -->
-          <div class="cal-day">
-            <div class="day-num">5</div>
-            <div class="c-slot" style="background:#DBEAFE;color:#1E40AF">Why we only use 3 dyes</div>
-          </div>
-          <div class="cal-day"><div class="day-num">6</div><div class="e-slot">+ Add</div></div>
-          <div class="cal-day">
-            <div class="day-num">7</div>
-            <div class="c-slot" style="background:#FFFBEB;color:#92400E">Community spotlight</div>
-          </div>
-          <div class="cal-day"><div class="day-num">8</div><div class="e-slot">+ Add</div></div>
-          <div class="cal-day">
-            <div class="day-num">9</div>
-            <div class="c-slot" style="background:#EDE9FE;color:#5B21B6">The mending kit — Reel</div>
-          </div>
-          <div class="cal-day"><div class="day-num">10</div><div class="e-slot">+ Add</div></div>
-          <div class="cal-day"><div class="day-num">11</div><div class="e-slot">+ Add</div></div>
-
-          <!-- Week 3 -->
-          <div class="cal-day">
-            <div class="day-num">12</div>
-            <div class="c-slot" style="background:#DBEAFE;color:#1E40AF">Meet Amara — cotton farmer</div>
-          </div>
-          <div class="cal-day"><div class="day-num">13</div><div class="e-slot">+ Add</div></div>
-          <div class="cal-day today">
-            <div class="day-num">14</div>
-            <div class="c-slot" style="background:#EDE9FE;color:#5B21B6">Real cost of fast fashion</div>
-          </div>
-          <div class="cal-day"><div class="day-num">15</div><div class="e-slot">+ Add</div></div>
-          <div class="cal-day">
-            <div class="day-num">16</div>
-            <div class="c-slot" style="background:#FFFBEB;color:#92400E">3 customers, 3 lifestyles</div>
-          </div>
-          <div class="cal-day"><div class="day-num">17</div><div class="e-slot">+ Add</div></div>
-          <div class="cal-day"><div class="day-num">18</div><div class="e-slot">+ Add</div></div>
-
-          <!-- Week 4 -->
-          <div class="cal-day">
-            <div class="day-num">19</div>
-            <div class="c-slot" style="background:#EDE9FE;color:#5B21B6">"Certified organic" explained</div>
-          </div>
-          <div class="cal-day"><div class="day-num">20</div><div class="e-slot">+ Add</div></div>
-          <div class="cal-day">
-            <div class="day-num">21</div>
-            <div class="c-slot" style="background:#DBEAFE;color:#1E40AF">Behind seams: fabric testing</div>
-          </div>
-          <div class="cal-day"><div class="day-num">22</div><div class="e-slot">+ Add</div></div>
-          <div class="cal-day">
-            <div class="day-num">23</div>
-            <div class="c-slot" style="background:#FFFBEB;color:#92400E">6-piece wardrobe styling</div>
-          </div>
-          <div class="cal-day"><div class="day-num">24</div><div class="e-slot">+ Add</div></div>
-          <div class="cal-day"><div class="day-num">25</div><div class="e-slot">+ Add</div></div>
-
-          <!-- Week 5 -->
-          <div class="cal-day">
-            <div class="day-num">26</div>
-            <div class="c-slot" style="background:#F0FDF4;color:#065F46">🌿 Linen drop — launch</div>
-          </div>
-          <div class="cal-day">
-            <div class="day-num">27</div>
-            <div class="c-slot" style="background:#F0FDF4;color:#065F46">Linen drop — social proof</div>
-          </div>
-          <div class="cal-day"><div class="day-num">28</div><div class="e-slot">+ Add</div></div>
-          <div class="cal-day">
-            <div class="day-num">29</div>
-            <div class="c-slot" style="background:#EDE9FE;color:#5B21B6">Month sustainability recap</div>
-          </div>
-          <div class="cal-day"><div class="day-num">30</div><div class="e-slot">+ Add</div></div>
-          <div class="cal-day"><div class="day-num">31</div><div class="e-slot">+ Add</div></div>
-          <div class="cal-day other"><div class="day-num">1</div></div>
-        </div>
-      </div>
-
+      <div class="mode-panel" id="strategyPanel"></div>
+      <div class="mode-panel" id="ideatePanel"></div>
+      <div class="mode-panel" id="calendarPanel"></div>
     </main>
 
-    <!-- ══ CONTEXT PANEL ══ -->
     <aside class="context-panel">
-
-      <!-- Brand Card -->
       <div class="card">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-          <div id="ctxAvatar" style="width:36px;height:36px;background:#EDE9FE;border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12px;color:#5B21B6;flex-shrink:0;transition:background 0.3s,color 0.3s">ET</div>
+          <div id="ctxAvatar" style="width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12px;flex-shrink:0"></div>
           <div>
-            <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px" id="ctxName">EcoThread</div>
-            <div style="font-size:10px;color:var(--text-muted)" id="ctxIndustry">Sustainable fashion</div>
+            <div id="ctxName" style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px"></div>
+            <div id="ctxIndustry" style="font-size:10px;color:var(--text-muted)"></div>
           </div>
         </div>
         <div class="card-label">Active Pillars</div>
-        <div id="ctxPillars" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px">
-          <span class="chip" style="background:#EDE9FE;color:#5B21B6;font-size:10px"><span class="chip-dot" style="background:#7C3AED"></span>Sustainable Living</span>
-          <span class="chip" style="background:#DBEAFE;color:#1E40AF;font-size:10px"><span class="chip-dot" style="background:#93C5FD"></span>Behind Thread</span>
-          <span class="chip" style="background:#FFFBEB;color:#92400E;font-size:10px"><span class="chip-dot" style="background:#FCD34D"></span>Community</span>
-          <span class="chip" style="background:#F0FDF4;color:#065F46;font-size:10px"><span class="chip-dot" style="background:#6EE7B7"></span>Product</span>
-        </div>
-        <div id="ctxVoice" style="background:var(--yellow-pale);padding:8px 10px;border-radius:7px;border-left:3px solid var(--yellow-warm);font-size:11px;color:var(--text-mid);line-height:1.5">
-          <strong style="font-family:'Space Grotesk',sans-serif">Voice:</strong> Direct, grounded, warm authority. No greenwashing.
-        </div>
+        <div id="ctxPillars" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px"></div>
+        <div id="ctxVoice" style="background:var(--yellow-pale);padding:8px 10px;border-radius:7px;border-left:3px solid var(--yellow-warm);font-size:11px;color:var(--text-mid);line-height:1.5"></div>
       </div>
-
-      <!-- Month Stats -->
       <div class="card">
-        <div class="card-label">May Progress</div>
+        <div class="card-label">Progress</div>
         <div class="stat-row">
           <span class="stat-label">Posts placed</span>
-          <span class="stat-value" id="ctxProgress">14 / 20</span>
+          <span class="stat-value" id="ctxProgress"></span>
         </div>
-        <div class="progress-bar"><div class="progress-fill" id="ctxProgressBar" style="width:70%"></div></div>
-
+        <div class="progress-bar"><div class="progress-fill" id="ctxProgressBar"></div></div>
         <div style="margin-top:12px">
           <div class="card-label" style="margin-bottom:6px">Pillar coverage</div>
-          <div class="gap-row">
-            <div class="gap-dot" style="background:#7C3AED"></div>
-            <span style="flex:1">Sustainable Living</span>
-            <strong>5 posts</strong>
-          </div>
-          <div class="gap-row">
-            <div class="gap-dot" style="background:#93C5FD"></div>
-            <span style="flex:1">Behind the Thread</span>
-            <strong>4 posts</strong>
-          </div>
-          <div class="gap-row">
-            <div class="gap-dot" style="background:#FCD34D"></div>
-            <span style="flex:1">Community Proof</span>
-            <strong>3 posts</strong>
-          </div>
-          <div class="gap-row">
-            <div class="gap-dot" style="background:#6EE7B7"></div>
-            <span style="flex:1">Product & Offers</span>
-            <strong style="color:#DC2626">2 posts ⚠</strong>
-          </div>
+          <div id="ctxCoverage"></div>
         </div>
       </div>
-
-      <!-- AI Generator -->
       <div class="ai-generator">
-        <div class="ai-label">✦ AI Generator</div>
+        <div class="ai-label">&#10022; AI Generator</div>
+        <select class="ai-select" id="aiPillarSelect"></select>
         <select class="ai-select">
-          <option>🌿 Sustainable Living</option>
-          <option>🧵 Behind the Thread</option>
-          <option>⭐ Community Proof</option>
-          <option>📣 Product & Offers</option>
+          <option>Any format</option><option>Carousel</option><option>Reel</option><option>Static</option><option>Story</option>
         </select>
-        <select class="ai-select">
-          <option>Any format</option>
-          <option>Carousel</option>
-          <option>Reel</option>
-          <option>Static</option>
-          <option>Story</option>
-        </select>
-        <textarea class="ai-textarea" rows="2" placeholder="Tone override or brief (optional)…"></textarea>
-        <button class="btn-generate" onclick="fakeGenerate(this)">✦ Generate 5 Ideas</button>
+        <textarea class="ai-textarea" rows="2" placeholder="Tone override or brief (optional)&#8230;"></textarea>
+        <button class="btn-generate" onclick="fakeGenerate(this)">&#10022; Generate 5 Ideas</button>
       </div>
-
     </aside>
   </div>
 </div>
 
-<!-- ══ SCRIPTS ══ -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDetail()"></div>
+<div class="detail-drawer" id="detailDrawer"></div>
+
 <script>
-  const CLIENTS = [
-    {
-      name: 'EcoThread', initials: 'ET', industry: 'Sustainable fashion',
-      accent: '#7C3AED', accentPale: '#EDE9FE', accentText: '#5B21B6',
-      progress: '14 / 20', progressPct: '70%',
-      voice: '<strong style="font-family:\'Space Grotesk\',sans-serif">Voice:</strong> Direct, grounded, warm authority. No greenwashing.',
-      pillars: `
-        <span class="chip" style="background:#EDE9FE;color:#5B21B6;font-size:10px"><span class="chip-dot" style="background:#7C3AED"></span>Sustainable Living</span>
-        <span class="chip" style="background:#DBEAFE;color:#1E40AF;font-size:10px"><span class="chip-dot" style="background:#93C5FD"></span>Behind Thread</span>
-        <span class="chip" style="background:#FFFBEB;color:#92400E;font-size:10px"><span class="chip-dot" style="background:#FCD34D"></span>Community</span>
-        <span class="chip" style="background:#F0FDF4;color:#065F46;font-size:10px"><span class="chip-dot" style="background:#6EE7B7"></span>Product</span>`
-    },
-    {
-      name: 'Nova Finance', initials: 'NF', industry: 'Fintech & investments',
-      accent: '#2563EB', accentPale: '#DBEAFE', accentText: '#1E40AF',
-      progress: '9 / 20', progressPct: '44%',
-      voice: '<strong style="font-family:\'Space Grotesk\',sans-serif">Voice:</strong> Clear, confident, jargon-light. Data-backed.',
-      pillars: `
-        <span class="chip" style="background:#DBEAFE;color:#1E40AF;font-size:10px"><span class="chip-dot" style="background:#2563EB"></span>Financial Clarity</span>
-        <span class="chip" style="background:#EDE9FE;color:#5B21B6;font-size:10px"><span class="chip-dot" style="background:#7C3AED"></span>Market Insight</span>
-        <span class="chip" style="background:#FFFBEB;color:#92400E;font-size:10px"><span class="chip-dot" style="background:#FCD34D"></span>Client Stories</span>
-        <span class="chip" style="background:#F0FDF4;color:#065F46;font-size:10px"><span class="chip-dot" style="background:#6EE7B7"></span>Product News</span>`
-    },
-    {
-      name: 'Bloom Wellness', initials: 'BW', industry: 'Health & wellness',
-      accent: '#D97706', accentPale: '#FFFBEB', accentText: '#92400E',
-      progress: '4 / 18', progressPct: '22%',
-      voice: '<strong style="font-family:\'Space Grotesk\',sans-serif">Voice:</strong> Warm, empowering, science-grounded. Never preachy.',
-      pillars: `
-        <span class="chip" style="background:#FFFBEB;color:#92400E;font-size:10px"><span class="chip-dot" style="background:#D97706"></span>Mindful Living</span>
-        <span class="chip" style="background:#EDE9FE;color:#5B21B6;font-size:10px"><span class="chip-dot" style="background:#7C3AED"></span>Expert Insights</span>
-        <span class="chip" style="background:#DBEAFE;color:#1E40AF;font-size:10px"><span class="chip-dot" style="background:#93C5FD"></span>Community</span>
-        <span class="chip" style="background:#F0FDF4;color:#065F46;font-size:10px"><span class="chip-dot" style="background:#6EE7B7"></span>Programs</span>`
-    }
-  ];
+const MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MNS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  let activeClient = 0;
-  let currentMonth = new Date(2026, 4);
+const CLIENTS=[
+  {name:'EcoThread',initials:'ET',industry:'Sustainable fashion',accent:'#7C3AED',accentPale:'#EDE9FE',accentText:'#5B21B6',
+   voice:'Direct, grounded, warm authority. No greenwashing.',
+   voiceTags:['Thoughtful','Direct','Grounded','Warm authority','No greenwashing'],
+   voiceAvoid:'Corporate buzzwords, performative eco claims, trend-chasing language',
+   goal:'Drive email sign-ups through educational content and push the summer linen drop in the final week.',
+   mix:{e:40,s:30,p:30},
+   pillars:[
+     {name:'Sustainable Living',icon:'🌿',color:'#7C3AED',bg:'#EDE9FE',tc:'#5B21B6',desc:'Practical tips for eco-conscious lifestyle choices aligned with EcoThread values.',ex:'"3 ways to extend the life of your wardrobe this season"'},
+     {name:'Behind the Thread',icon:'🧵',color:'#93C5FD',bg:'#DBEAFE',tc:'#1E40AF',desc:'Brand transparency — sourcing stories, maker spotlights, production process content.',ex:'"Inside our organic cotton supply chain"'},
+     {name:'Community Proof',icon:'⭐',color:'#FCD34D',bg:'#FFFBEB',tc:'#92400E',desc:'Customer stories, UGC reposts, real-world styling, and community moments.',ex:'"How I styled my EcoThread capsule for 3 seasons"'},
+     {name:'Product & Offers',icon:'📣',color:'#6EE7B7',bg:'#F0FDF4',tc:'#065F46',desc:'New arrivals, seasonal drops, and promotional content — capped at 25%.',ex:'"New summer linen drop — only 200 pieces"'},
+   ],
+   allIdeas:[
+     {id:'eq1',headline:'"The real cost of fast fashion — and what we\'re doing differently"',pi:0,format:'Carousel',effort:'M',status:'queue'},
+     {id:'eq2',headline:'Meet Amara — the farmer who grows our organic cotton in Tamil Nadu',pi:1,format:'Reel',effort:'L',status:'queue'},
+     {id:'eq3',headline:'5 questions to ask before buying any piece of clothing',pi:0,format:'Static',effort:'S',status:'queue'},
+     {id:'eq4',headline:'Customer spotlight: "I built my entire summer wardrobe with 6 pieces"',pi:2,format:'Carousel',effort:'M',status:'queue'},
+     {id:'eq5',headline:'Behind the seams: how we test fabric durability before it ships',pi:1,format:'Story',effort:'S',status:'queue'},
+     {id:'ea1',headline:'Why we only use 3 dyes — and what we gave up for that',pi:1,format:'Carousel',effort:'M',status:'accepted'},
+     {id:'ea2',headline:'The mending kit we include with every order',pi:0,format:'Reel',effort:'S',status:'accepted'},
+     {id:'ea3',headline:'Introducing our summer linen collection — 200 pieces only',pi:3,format:'Carousel',effort:'M',status:'accepted'},
+     {id:'ea4',headline:'What "certified organic" actually means on a label',pi:0,format:'Static',effort:'S',status:'accepted'},
+     {id:'ea5',headline:'3 EcoThread customers, 3 different lifestyles',pi:2,format:'Carousel',effort:'M',status:'accepted'},
+     {id:'ep01',headline:'5 questions before buying',pi:0,format:'Static',effort:'S',status:'placed',date:'2026-05-01'},
+     {id:'ep02',headline:'Why we only use 3 dyes',pi:1,format:'Carousel',effort:'M',status:'placed',date:'2026-05-05'},
+     {id:'ep03',headline:'Community spotlight',pi:2,format:'Static',effort:'S',status:'placed',date:'2026-05-07'},
+     {id:'ep04',headline:'The mending kit — Reel',pi:0,format:'Reel',effort:'S',status:'placed',date:'2026-05-09'},
+     {id:'ep05',headline:'Meet Amara — cotton farmer',pi:1,format:'Reel',effort:'L',status:'placed',date:'2026-05-12'},
+     {id:'ep06',headline:'Real cost of fast fashion',pi:0,format:'Carousel',effort:'M',status:'placed',date:'2026-05-14'},
+     {id:'ep07',headline:'3 customers, 3 lifestyles',pi:2,format:'Carousel',effort:'M',status:'placed',date:'2026-05-16'},
+     {id:'ep08',headline:'"Certified organic" explained',pi:0,format:'Static',effort:'S',status:'placed',date:'2026-05-19'},
+     {id:'ep09',headline:'Behind seams: fabric testing',pi:1,format:'Story',effort:'S',status:'placed',date:'2026-05-21'},
+     {id:'ep10',headline:'6-piece wardrobe styling',pi:2,format:'Carousel',effort:'M',status:'placed',date:'2026-05-23'},
+     {id:'ep11',headline:'Linen drop — launch',pi:3,format:'Carousel',effort:'L',status:'placed',date:'2026-05-26'},
+     {id:'ep12',headline:'Linen drop — social proof',pi:3,format:'Static',effort:'S',status:'placed',date:'2026-05-27'},
+     {id:'ep13',headline:'Month sustainability recap',pi:0,format:'Static',effort:'S',status:'placed',date:'2026-05-29'},
+   ]},
+  {name:'Nova Finance',initials:'NF',industry:'Fintech & investments',accent:'#2563EB',accentPale:'#DBEAFE',accentText:'#1E40AF',
+   voice:'Clear, confident, jargon-light. Data-backed.',
+   voiceTags:['Clear','Confident','Data-backed','Jargon-light','Trustworthy'],
+   voiceAvoid:'Hype language, vague promises, overly technical financial jargon',
+   goal:'Increase newsletter subscribers and position the brand as a trusted financial guide for working professionals.',
+   mix:{e:50,s:20,p:30},
+   pillars:[
+     {name:'Financial Clarity',icon:'💡',color:'#2563EB',bg:'#DBEAFE',tc:'#1E40AF',desc:'Plain-language explanations of financial concepts and decisions that affect everyday people.',ex:'"The 50/30/20 rule — updated for 2026 inflation"'},
+     {name:'Market Insight',icon:'📈',color:'#7C3AED',bg:'#EDE9FE',tc:'#5B21B6',desc:'Weekly takes on market movements and what they mean for clients.',ex:'"What the Fed decision actually means for your savings"'},
+     {name:'Client Stories',icon:'👤',color:'#FCD34D',bg:'#FFFBEB',tc:'#92400E',desc:'Real client journeys — milestone moments, debt freedom, early retirement.',ex:'"From debt spiral to 6-month emergency fund in 18 months"'},
+     {name:'Product News',icon:'🚀',color:'#6EE7B7',bg:'#F0FDF4',tc:'#065F46',desc:'New features and dashboard updates explained simply with clear benefit framing.',ex:'"New: automated tax-loss harvesting — here\'s what it does"'},
+   ],
+   allIdeas:[
+     {id:'nq1',headline:'3 money mistakes even high earners make in their 30s',pi:0,format:'Carousel',effort:'M',status:'queue'},
+     {id:'nq2',headline:'What the Fed rate decision actually means for your savings',pi:1,format:'Static',effort:'S',status:'queue'},
+     {id:'nq3',headline:'Client spotlight: from debt spiral to 6-month emergency fund',pi:2,format:'Reel',effort:'L',status:'queue'},
+     {id:'nq4',headline:'The one ratio your financial advisor should be tracking',pi:0,format:'Carousel',effort:'M',status:'queue'},
+     {id:'nq5',headline:'Why we built a dashboard that shows fees in plain language',pi:3,format:'Static',effort:'S',status:'queue'},
+     {id:'na1',headline:'Compound interest: the math your bank doesn\'t show you',pi:0,format:'Carousel',effort:'M',status:'accepted'},
+     {id:'na2',headline:'Q2 market wrap: what moved and what didn\'t',pi:1,format:'Static',effort:'S',status:'accepted'},
+     {id:'na3',headline:'New feature: automated tax-loss harvesting explained',pi:3,format:'Reel',effort:'M',status:'accepted'},
+     {id:'np1',headline:'The 50/30/20 rule — updated for 2026',pi:0,format:'Carousel',effort:'S',status:'placed',date:'2026-05-02'},
+     {id:'np2',headline:'Market insight: May outlook',pi:1,format:'Static',effort:'S',status:'placed',date:'2026-05-07'},
+     {id:'np3',headline:'Client story: reaching FIRE at 42',pi:2,format:'Reel',effort:'L',status:'placed',date:'2026-05-12'},
+     {id:'np4',headline:'New dashboard feature walkthrough',pi:3,format:'Reel',effort:'M',status:'placed',date:'2026-05-19'},
+   ]},
+  {name:'Bloom Wellness',initials:'BW',industry:'Health & wellness',accent:'#D97706',accentPale:'#FFFBEB',accentText:'#92400E',
+   voice:'Warm, empowering, science-grounded. Never preachy.',
+   voiceTags:['Warm','Empowering','Science-grounded','Accessible','Non-judgmental'],
+   voiceAvoid:'Guilt-tripping language, toxic positivity, unverified wellness claims',
+   goal:'Grow program enrollment and build trust through expert-led educational content.',
+   mix:{e:45,s:35,p:20},
+   pillars:[
+     {name:'Mindful Living',icon:'🧘',color:'#D97706',bg:'#FFFBEB',tc:'#92400E',desc:'Practical mindfulness and wellness habits grounded in science, not trends.',ex:'"The 5-minute morning habit backed by sleep research"'},
+     {name:'Expert Insights',icon:'🔬',color:'#7C3AED',bg:'#EDE9FE',tc:'#5B21B6',desc:'Interview-style content featuring practitioners, researchers, and health professionals.',ex:'"Dr. Lena Park on nervous system regulation — in plain language"'},
+     {name:'Community',icon:'🤝',color:'#93C5FD',bg:'#DBEAFE',tc:'#1E40AF',desc:'Member milestones, community threads, shared experiences, and peer encouragement.',ex:'"Community thread: what helped you through your hardest month?"'},
+     {name:'Programs',icon:'📋',color:'#6EE7B7',bg:'#F0FDF4',tc:'#065F46',desc:'Course and program content — what to expect, member results, and enrollment windows.',ex:'"What happens in week 3 of our 8-week program"'},
+   ],
+   allIdeas:[
+     {id:'bq1',headline:'The 5-minute morning habit that actually works (backed by research)',pi:0,format:'Carousel',effort:'S',status:'queue'},
+     {id:'bq2',headline:'Why your sleep tracker might be making your anxiety worse',pi:1,format:'Static',effort:'M',status:'queue'},
+     {id:'bq3',headline:'Community thread: what helped you through your hardest month?',pi:2,format:'Story',effort:'S',status:'queue'},
+     {id:'bq4',headline:'Our 8-week program: what happens in week 3 that changes everything',pi:3,format:'Reel',effort:'L',status:'queue'},
+     {id:'ba1',headline:'The difference between self-care and self-soothing',pi:0,format:'Carousel',effort:'M',status:'accepted'},
+     {id:'ba2',headline:'Interview: Dr. Lena Park on nervous system regulation',pi:1,format:'Reel',effort:'L',status:'accepted'},
+     {id:'bp1',headline:'Morning ritual guide — Spring edition',pi:0,format:'Carousel',effort:'S',status:'placed',date:'2026-05-03'},
+     {id:'bp2',headline:'Expert Q&A: sleep and stress connection',pi:1,format:'Static',effort:'M',status:'placed',date:'2026-05-10'},
+   ]}
+];
 
-  function switchClient(idx) {
-    activeClient = idx;
-    const c = CLIENTS[idx];
+const LS='cp_v2';
+function defaultState(){
+  return{ac:0,mode:'calendar',year:2026,month:4,placing:null,notes:{},
+    clients:CLIENTS.map(c=>({
+      queue:c.allIdeas.filter(i=>i.status==='queue').map(i=>i.id),
+      accepted:c.allIdeas.filter(i=>i.status==='accepted').map(i=>i.id),
+      discarded:[],
+      placed:c.allIdeas.filter(i=>i.status==='placed').reduce((a,i)=>{if(!a[i.date])a[i.date]=[];a[i.date].push({id:i.id,headline:i.headline,pi:i.pi,format:i.format,effort:i.effort});return a;},{})
+    }))};
+}
+let S;try{S=JSON.parse(localStorage.getItem(LS))||defaultState();}catch(e){S=defaultState();}
+if(!S.clients||S.clients.length!==CLIENTS.length)S=defaultState();
+function save(){localStorage.setItem(LS,JSON.stringify(S));}
+function pad(n){return String(n).padStart(2,'0');}
+function getIdea(id,ci){return CLIENTS[ci!=null?ci:S.ac].allIdeas.find(i=>i.id===id);}
+function placedCount(ci,yr,mo){const pfx=`${yr}-${pad(mo+1)}`;let n=0;Object.entries(S.clients[ci].placed).forEach(([k,v])=>{if(k.startsWith(pfx))n+=v.length;});return n;}
+function getPlacedDate(ideaId,ci){for(const[k,v]of Object.entries(S.clients[ci].placed))if(v.some(i=>i.id===ideaId))return k;return null;}
+function pillarCov(ci,yr,mo){const pfx=`${yr}-${pad(mo+1)}`;const c=CLIENTS[ci].pillars.map(()=>0);Object.entries(S.clients[ci].placed).forEach(([k,v])=>{if(k.startsWith(pfx))v.forEach(i=>{if(c[i.pi]!=null)c[i.pi]++;});});return c;}
 
-    // Header
-    document.getElementById('clientNameHeader').textContent = c.name;
+function renderAll(){
+  const c=CLIENTS[S.ac];
+  document.documentElement.style.setProperty('--accent',c.accent);
+  document.getElementById('clientNameHeader').textContent=c.name;
+  document.getElementById('monthLabel').textContent=`${MN[S.month]} ${S.year}`;
+  document.querySelectorAll('.client-avatar').forEach((el,i)=>el.classList.toggle('active',i===S.ac));
+  document.querySelectorAll('.mode-tab').forEach(t=>t.classList.toggle('active',t.textContent.toLowerCase()===S.mode));
+  document.querySelectorAll('.mode-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById({strategy:'strategyPanel',ideate:'ideatePanel',calendar:'calendarPanel'}[S.mode]).classList.add('active');
+  renderCtx();
+  if(S.mode==='calendar')renderCal();
+  else if(S.mode==='ideate')renderIdeate();
+  else renderStrategy();
+}
 
-    // Accent
-    document.documentElement.style.setProperty('--accent', c.accent);
+function renderCtx(){
+  const ci=S.ac,c=CLIENTS[ci];
+  const pc=placedCount(ci,S.year,S.month);
+  const pct=Math.min(100,Math.round(pc/20*100));
+  const cov=pillarCov(ci,S.year,S.month);
+  const av=document.getElementById('ctxAvatar');
+  av.textContent=c.initials;av.style.background=c.accentPale;av.style.color=c.accentText;
+  document.getElementById('ctxName').textContent=c.name;
+  document.getElementById('ctxIndustry').textContent=c.industry;
+  document.getElementById('ctxVoice').innerHTML=`<strong style="font-family:'Space Grotesk',sans-serif">Voice:</strong> ${c.voice}`;
+  document.getElementById('ctxPillars').innerHTML=c.pillars.map(p=>`<span class="chip" style="background:${p.bg};color:${p.tc};font-size:10px"><span class="chip-dot" style="background:${p.color}"></span>${p.name}</span>`).join('');
+  document.getElementById('ctxProgress').textContent=`${pc} / 20`;
+  const pb=document.getElementById('ctxProgressBar');pb.style.width=`${pct}%`;pb.style.background=c.accent;
+  document.getElementById('ctxCoverage').innerHTML=c.pillars.map((p,i)=>{const n=cov[i],low=n<2;return`<div class="gap-row"><div class="gap-dot" style="background:${p.color}"></div><span style="flex:1">${p.name}</span><strong style="${low?'color:#DC2626':''}">${n} post${n!==1?'s':''}${n===0?' ⚠':''}</strong></div>`;}).join('');
+  document.getElementById('aiPillarSelect').innerHTML=c.pillars.map(p=>`<option>${p.icon} ${p.name}</option>`).join('');
+  CLIENTS.forEach((_,i)=>{const bar=document.getElementById(`fill-${i}`);if(bar){bar.style.width=Math.min(100,Math.round(placedCount(i,S.year,S.month)/20*100))+'%';bar.style.background=CLIENTS[i].accent;}});
+}
 
-    // Rail avatars
-    document.querySelectorAll('.client-avatar').forEach((el, i) => {
-      el.classList.toggle('active', i === idx);
-    });
-
-    // Context panel
-    document.getElementById('ctxAvatar').textContent = c.initials;
-    document.getElementById('ctxAvatar').style.background = c.accentPale;
-    document.getElementById('ctxAvatar').style.color = c.accentText;
-    document.getElementById('ctxName').textContent = c.name;
-    document.getElementById('ctxIndustry').textContent = c.industry;
-    document.getElementById('ctxPillars').innerHTML = c.pillars;
-    document.getElementById('ctxVoice').innerHTML = c.voice;
-    document.getElementById('ctxProgress').textContent = c.progress;
-    document.getElementById('ctxProgressBar').style.width = c.progressPct;
-
-    // Mode-specific titles
-    document.getElementById('strategyTitle').textContent = `Content Strategy — ${c.name}`;
-    document.getElementById('ideateTitle').textContent = `Idea Triage — ${c.name} · ${MONTHS[currentMonth.getMonth()]} ${currentMonth.getFullYear()}`;
-    document.getElementById('calTitle').textContent = `${MONTHS[currentMonth.getMonth()]} ${currentMonth.getFullYear()} — ${c.name}`;
+function renderCal(){
+  const ci=S.ac,c=CLIENTS[ci],cs=S.clients[ci];
+  const first=new Date(S.year,S.month,1).getDay();
+  const startPad=(first+6)%7;
+  const dim=new Date(S.year,S.month+1,0).getDate();
+  const prevDim=new Date(S.year,S.month,0).getDate();
+  const now=new Date();
+  const todayKey=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  const isPlacing=!!(S.placing&&S.placing.ci===ci);
+  const pc=placedCount(ci,S.year,S.month);
+  let h='';
+  if(isPlacing){const iv=getIdea(S.placing.ideaId,ci);const t=iv?(iv.headline.length>58?iv.headline.substring(0,58)+'…':iv.headline):'';h+=`<div class="placement-banner"><span>&#128197; Click a date to place: <strong>"${t}"</strong></span><button class="cancel-btn" onclick="cancelPlacement()">Cancel</button></div>`;}
+  h+=`<div class="cal-toolbar"><h2 class="section-title" style="margin-bottom:0">${MN[S.month]} ${S.year} — ${c.name}</h2><div style="display:flex;gap:10px;align-items:center"><span style="font-size:12px;color:var(--text-muted)">${pc} of 20 posts placed</span><button class="btn-primary" style="font-size:12px;padding:7px 14px">Export Month &#8594;</button></div></div>`;
+  h+=`<div class="cal-legend">${c.pillars.map(p=>`<span class="chip" style="background:${p.bg};color:${p.tc};font-size:11px"><span class="chip-dot" style="background:${p.color}"></span>${p.name}</span>`).join('')}</div>`;
+  h+=`<div class="cal-grid">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div class="cal-head">${d}</div>`).join('')}`;
+  for(let i=0;i<startPad;i++)h+=`<div class="cal-day other"><div class="day-num">${prevDim-startPad+1+i}</div></div>`;
+  for(let d=1;d<=dim;d++){
+    const dk=`${S.year}-${pad(S.month+1)}-${pad(d)}`;
+    const isToday=dk===todayKey;
+    const here=cs.placed[dk]||[];
+    let cls='cal-day'+(isToday?' today':'')+(isPlacing?' placing':'');
+    const oc=isPlacing?`onclick="placeIdea('${dk}')"` :'';
+    h+=`<div class="${cls}" ${oc}><div class="day-num">${d}</div>`;
+    here.forEach(iv=>{const p=c.pillars[iv.pi];const soc=isPlacing?'':`onclick="openDetail('${iv.id}','${dk}',event)"`;h+=`<div class="c-slot" style="background:${p.bg};color:${p.tc}" ${soc} title="${iv.headline}">${iv.headline}</div>`;});
+    if(!isPlacing)h+=`<div class="e-slot" onclick="handleAdd('${dk}')">+ Add</div>`;
+    h+=`</div>`;
   }
+  const trail=(startPad+dim)%7===0?0:7-(startPad+dim)%7;
+  for(let i=1;i<=trail;i++)h+=`<div class="cal-day other"><div class="day-num">${i}</div></div>`;
+  h+=`</div>`;
+  document.getElementById('calendarPanel').innerHTML=h;
+}
 
-  function switchMode(mode) {
-    document.querySelectorAll('.mode-tab').forEach(t => {
-      t.classList.toggle('active', t.textContent.toLowerCase() === mode);
-    });
-    document.querySelectorAll('.mode-panel').forEach(p => p.classList.remove('active'));
-    const map = { strategy: 'strategyPanel', ideate: 'ideatePanel', calendar: 'calendarPanel' };
-    document.getElementById(map[mode]).classList.add('active');
-  }
+function renderIdeate(){
+  const ci=S.ac,c=CLIENTS[ci],cs=S.clients[ci];
+  const pc=placedCount(ci,S.year,S.month);
+  const queue=cs.queue.map(id=>getIdea(id,ci)).filter(Boolean);
+  const accepted=cs.accepted.map(id=>getIdea(id,ci)).filter(Boolean);
+  let h=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px"><h2 class="section-title" style="margin-bottom:0">Idea Triage — ${c.name} &#183; ${MN[S.month]} ${S.year}</h2><span style="font-size:12px;color:var(--text-muted)">${accepted.length} accepted &#183; ${pc} placed</span></div><div class="idea-grid"><div>`;
+  h+=`<div class="idea-col-header">AI Queue <span class="idea-count" style="background:var(--purple-light);color:var(--purple-dark)">${queue.length} ideas</span></div>`;
+  if(!queue.length){h+=`<div class="empty-col">&#10022; Queue empty<br><span style="font-size:11px">Use the AI Generator &#8594;</span></div>`;}
+  else queue.forEach(iv=>{const p=c.pillars[iv.pi];h+=`<div class="idea-card"><div class="idea-headline">${iv.headline}</div><div class="idea-meta"><span class="chip" style="background:${p.bg};color:${p.tc};font-size:10px"><span class="chip-dot" style="background:${p.color}"></span>${p.name}</span><span class="fmt-badge">${iv.format}</span><span class="effort-badge">${iv.effort}</span></div><div class="idea-actions"><button class="btn-accept" onclick="acceptIdea('${iv.id}')">&#10003; Accept</button><button class="btn-discard" onclick="discardIdea('${iv.id}')">&#10005;</button></div></div>`;});
+  h+=`</div><div><div class="idea-col-header">Accepted <span class="idea-count" style="background:#D1FAE5;color:#065F46">${accepted.length} ready</span></div>`;
+  if(!accepted.length){h+=`<div class="empty-col">No accepted ideas yet<br><span style="font-size:11px;color:var(--text-muted)">Accept from the queue to place on calendar</span></div>`;}
+  else accepted.forEach(iv=>{const p=c.pillars[iv.pi];const pd=getPlacedDate(iv.id,ci);let badge='';if(pd){const[,m,d]=pd.split('-');badge=`<span class="date-badge">${MNS[+m-1]} ${+d}</span>`;}h+=`<div class="idea-card" style="border-left:3px solid ${pd?p.color:'var(--border)'}"><div class="idea-headline">${iv.headline}</div><div class="idea-meta"><span class="chip" style="background:${p.bg};color:${p.tc};font-size:10px"><span class="chip-dot" style="background:${p.color}"></span>${p.name}</span><span class="fmt-badge">${iv.format}</span>${pd?badge:'<span style="font-size:10px;color:var(--text-muted)">Unplaced</span>'}</div>${pd?`<button class="btn-place" style="background:#D1FAE5;color:#065F46;margin-top:8px" onclick="switchMode('calendar')">&#8594; View on calendar</button>`:`<button class="btn-place" style="margin-top:8px" onclick="startPlacement('${iv.id}')">&#128197; Place on calendar</button>`}</div>`;});
+  h+=`</div></div>`;
+  document.getElementById('ideatePanel').innerHTML=h;
+}
 
-  function changeMonth(dir) {
-    currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + dir);
-    const label = MONTHS[currentMonth.getMonth()] + ' ' + currentMonth.getFullYear();
-    document.getElementById('monthLabel').textContent = label;
-    const c = CLIENTS[activeClient];
-    document.getElementById('calTitle').textContent = `${label} — ${c.name}`;
-    document.getElementById('ideateTitle').textContent = `Idea Triage — ${c.name} · ${label}`;
-  }
+function renderStrategy(){
+  const c=CLIENTS[S.ac];
+  const pils=c.pillars.map(p=>`<div class="pillar-card" style="border-left-color:${p.color}"><div class="pillar-name">${p.icon} ${p.name}</div><div class="pillar-desc">${p.desc}</div><div class="pillar-eg">&#8594; ${p.ex}</div></div>`).join('');
+  const tagBg=[c.accentPale,c.accentPale,c.accentPale,'#FFFBEB','#F0FDF4'];
+  const tagTc=[c.accentText,c.accentText,c.accentText,'#92400E','#065F46'];
+  const tags=c.voiceTags.map((t,i)=>`<span class="chip" style="background:${tagBg[i]||c.accentPale};color:${tagTc[i]||c.accentText}">${t}</span>`).join('');
+  document.getElementById('strategyPanel').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px"><h2 class="section-title" style="margin-bottom:0">Content Strategy &#8212; ${c.name}</h2><button class="btn-primary" onclick="switchMode('ideate')">Confirm Strategy &#8594;</button></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:22px"><div><div class="card-label">Content Pillars</div>${pils}</div><div style="display:flex;flex-direction:column;gap:14px"><div class="card"><div class="card-label">Brand Voice</div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">${tags}</div><div style="background:var(--bg);padding:9px 10px;border-radius:7px;font-size:11px;color:var(--text-mid);line-height:1.5"><strong>Avoid:</strong> ${c.voiceAvoid}</div></div><div class="card"><div class="card-label">Content Mix Target</div><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-mid);margin-bottom:5px"><span>Educational ${c.mix.e}%</span><span>Social proof ${c.mix.s}%</span><span>Promo ${c.mix.p}%</span></div><div class="mix-bar"><div class="mix-seg" style="flex:${c.mix.e};background:var(--accent)"></div><div class="mix-seg" style="flex:${c.mix.s};background:var(--blue-mid)"></div><div class="mix-seg" style="flex:${c.mix.p};background:var(--yellow)"></div></div></div><div class="card"><div class="card-label">Monthly Goal</div><div style="font-size:12px;color:var(--text-dark);line-height:1.55;padding:9px 10px;background:var(--yellow-pale);border-radius:8px;border-left:3px solid var(--yellow-warm)">${c.goal}</div></div></div></div>`;
+}
 
-  function acceptIdea(btn) {
-    const card = btn.closest('.idea-card');
-    card.style.transition = 'opacity 0.22s, transform 0.22s';
-    card.style.opacity = '0';
-    card.style.transform = 'translateX(12px)';
-    setTimeout(() => card.remove(), 220);
-  }
+function renderDetail(){
+  if(!S.detail)return;
+  const{ideaId,dateKey}=S.detail;
+  const ci=S.ac,c=CLIENTS[ci],cs=S.clients[ci];
+  const list=cs.placed[dateKey]||[];
+  const iv=list.find(i=>i.id===ideaId);
+  if(!iv){closeDetail();return;}
+  const p=c.pillars[iv.pi];
+  const[yr,mo,dy]=dateKey.split('-');
+  const note=(S.notes&&S.notes[ideaId])||'';
+  document.getElementById('detailDrawer').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px"><div><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);margin-bottom:4px">Content Detail</div><div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px">${MN[+mo-1]} ${+dy}, ${yr}</div></div><button onclick="closeDetail()" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:white;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0">&#10005;</button></div><div style="font-size:13px;font-weight:500;line-height:1.5;color:var(--text-dark);margin-bottom:14px">${iv.headline}</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px"><span class="chip" style="background:${p.bg};color:${p.tc}"><span class="chip-dot" style="background:${p.color}"></span>${p.name}</span><span class="fmt-badge" style="padding:3px 9px;font-size:11px">${iv.format}</span><span class="effort-badge" style="padding:3px 9px;font-size:11px">Effort: ${iv.effort}</span></div><div style="margin-bottom:16px"><div class="card-label" style="margin-bottom:6px">Caption Notes</div><textarea id="noteTA" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:'Inter',sans-serif;resize:vertical;min-height:80px;color:var(--text-dark);line-height:1.5" placeholder="Copy notes, key messages, CTAs&#8230;">${note}</textarea></div><button onclick="removeFromCal('${ideaId}','${dateKey}')" style="width:100%;padding:9px;background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif">Remove from calendar</button>`;
+  document.getElementById('noteTA').addEventListener('input',function(){if(!S.notes)S.notes={};S.notes[ideaId]=this.value;save();});
+}
 
-  function discardIdea(btn) {
-    const card = btn.closest('.idea-card');
-    card.style.transition = 'opacity 0.22s, transform 0.22s';
-    card.style.opacity = '0';
-    card.style.transform = 'translateX(-12px)';
-    setTimeout(() => card.remove(), 220);
-  }
+function acceptIdea(id){const cs=S.clients[S.ac];cs.queue=cs.queue.filter(q=>q!==id);if(!cs.accepted.includes(id))cs.accepted.push(id);save();renderIdeate();renderCtx();}
+function discardIdea(id){const cs=S.clients[S.ac];cs.queue=cs.queue.filter(q=>q!==id);if(!cs.discarded.includes(id))cs.discarded.push(id);save();renderIdeate();}
+function startPlacement(ideaId){S.placing={ideaId,ci:S.ac};save();switchMode('calendar');}
+function cancelPlacement(){S.placing=null;save();renderCal();}
+function placeIdea(dateKey){
+  if(!S.placing||S.placing.ci!==S.ac)return;
+  const iv=getIdea(S.placing.ideaId);if(!iv)return;
+  const cs=S.clients[S.ac];
+  if(!cs.placed[dateKey])cs.placed[dateKey]=[];
+  if(!cs.placed[dateKey].some(i=>i.id===iv.id))cs.placed[dateKey].push({id:iv.id,headline:iv.headline,pi:iv.pi,format:iv.format,effort:iv.effort});
+  S.placing=null;save();renderCal();renderIdeate();renderCtx();
+}
+function openDetail(ideaId,dateKey,event){if(event)event.stopPropagation();if(S.placing)return;S.detail={ideaId,dateKey};renderDetail();document.getElementById('detailDrawer').classList.add('open');document.getElementById('drawerOverlay').classList.add('open');}
+function closeDetail(){S.detail=null;document.getElementById('detailDrawer').classList.remove('open');document.getElementById('drawerOverlay').classList.remove('open');}
+function removeFromCal(ideaId,dateKey){const cs=S.clients[S.ac];if(cs.placed[dateKey]){cs.placed[dateKey]=cs.placed[dateKey].filter(i=>i.id!==ideaId);if(!cs.placed[dateKey].length)delete cs.placed[dateKey];}if(!cs.accepted.includes(ideaId))cs.accepted.push(ideaId);closeDetail();save();renderCal();renderIdeate();renderCtx();}
+function handleAdd(dateKey){switchMode('ideate');}
+function switchClient(ci){S.ac=ci;S.placing=null;closeDetail();save();renderAll();}
+function switchMode(mode){S.mode=mode;save();document.querySelectorAll('.mode-tab').forEach(t=>t.classList.toggle('active',t.textContent.toLowerCase()===mode));document.querySelectorAll('.mode-panel').forEach(p=>p.classList.remove('active'));document.getElementById({strategy:'strategyPanel',ideate:'ideatePanel',calendar:'calendarPanel'}[mode]).classList.add('active');if(mode==='calendar')renderCal();else if(mode==='ideate')renderIdeate();else renderStrategy();}
+function changeMonth(dir){S.month+=dir;if(S.month<0){S.month=11;S.year--;}if(S.month>11){S.month=0;S.year++;}document.getElementById('monthLabel').textContent=`${MN[S.month]} ${S.year}`;save();renderCtx();if(S.mode==='calendar')renderCal();else if(S.mode==='ideate')renderIdeate();}
+function fakeGenerate(btn){const orig=btn.innerHTML;btn.innerHTML='&#8635; Generating&#8230;';btn.disabled=true;setTimeout(()=>{btn.innerHTML=orig;btn.disabled=false;},1400);}
 
-  function fakeGenerate(btn) {
-    const orig = btn.innerHTML;
-    btn.innerHTML = '⟳ Generating…';
-    btn.disabled = true;
-    setTimeout(() => {
-      btn.innerHTML = orig;
-      btn.disabled = false;
-    }, 1400);
-  }
-
-  // Init accent
-  document.documentElement.style.setProperty('--accent', CLIENTS[0].accent);
+document.addEventListener('DOMContentLoaded',renderAll);
 </script>
-
 </body>
 </html>
