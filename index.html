@@ -186,7 +186,7 @@ h1,h2,h3,h4,.mode-tab,.section-title,.client-name-header,.idea-col-header,.ai-la
           <option>Any format</option><option>Carousel</option><option>Reel</option><option>Static</option><option>Story</option>
         </select>
         <textarea class="ai-textarea" rows="2" placeholder="Tone override or brief (optional)&#8230;"></textarea>
-        <button class="btn-generate" onclick="fakeGenerate(this)">&#10022; Generate 5 Ideas</button>
+        <button class="btn-generate" onclick="generateIdeas(this)">&#10022; Generate 5 Ideas</button>
       </div>
     </aside>
   </div>
@@ -236,6 +236,18 @@ const CLIENTS=[
      {id:'ep11',headline:'Linen drop — launch',pi:3,format:'Carousel',effort:'L',status:'placed',date:'2026-05-26'},
      {id:'ep12',headline:'Linen drop — social proof',pi:3,format:'Static',effort:'S',status:'placed',date:'2026-05-27'},
      {id:'ep13',headline:'Month sustainability recap',pi:0,format:'Static',effort:'S',status:'placed',date:'2026-05-29'},
+   ],
+   ideaBank:[
+     {id:'eb1',headline:'How to wash your clothes less — and why it makes them last longer',pi:0,format:'Carousel',effort:'S'},
+     {id:'eb2',headline:'The carbon math behind one pair of jeans vs. one linen shirt',pi:0,format:'Static',effort:'M'},
+     {id:'eb3',headline:'Our packaging: why we chose mushroom wrap over recycled plastic',pi:1,format:'Carousel',effort:'S'},
+     {id:'eb4',headline:'30 days of outfit repeating — what we actually learned',pi:2,format:'Reel',effort:'M'},
+     {id:'eb5',headline:'The woman who sews 40 pieces a day and knows every thread by name',pi:1,format:'Reel',effort:'L'},
+     {id:'eb6',headline:'What does "slow fashion" actually mean in 2026?',pi:0,format:'Carousel',effort:'M'},
+     {id:'eb7',headline:'Summer capsule: 8 pieces, 30 outfit combinations',pi:3,format:'Carousel',effort:'M'},
+     {id:'eb8',headline:'Why we rejected 4 fabric suppliers this year',pi:1,format:'Static',effort:'S'},
+     {id:'eb9',headline:'"I wore it 100 times" — our most-loved customer photos this season',pi:2,format:'Carousel',effort:'M'},
+     {id:'eb10',headline:'Last chance: summer linen waitlist closes Friday',pi:3,format:'Story',effort:'S'},
    ]},
   {name:'Nova Finance',initials:'NF',industry:'Fintech & investments',accent:'#2563EB',accentPale:'#DBEAFE',accentText:'#1E40AF',
    voice:'Clear, confident, jargon-light. Data-backed.',
@@ -262,6 +274,18 @@ const CLIENTS=[
      {id:'np2',headline:'Market insight: May outlook',pi:1,format:'Static',effort:'S',status:'placed',date:'2026-05-07'},
      {id:'np3',headline:'Client story: reaching FIRE at 42',pi:2,format:'Reel',effort:'L',status:'placed',date:'2026-05-12'},
      {id:'np4',headline:'New dashboard feature walkthrough',pi:3,format:'Reel',effort:'M',status:'placed',date:'2026-05-19'},
+   ],
+   ideaBank:[
+     {id:'nb1',headline:'What a 1% fee difference actually costs you over 20 years',pi:0,format:'Static',effort:'S'},
+     {id:'nb2',headline:'How inflation is quietly eating your emergency fund — and what to do',pi:1,format:'Carousel',effort:'M'},
+     {id:'nb3',headline:'Client milestone: $0 debt after 11 years — Marco\'s story',pi:2,format:'Reel',effort:'L'},
+     {id:'nb4',headline:'Dollar-cost averaging: why boring beats brilliant every time',pi:0,format:'Carousel',effort:'S'},
+     {id:'nb5',headline:'Understanding your payslip: 6 numbers you should actually know',pi:0,format:'Carousel',effort:'M'},
+     {id:'nb6',headline:'Why we show you the full fee breakdown before you sign anything',pi:3,format:'Static',effort:'S'},
+     {id:'nb7',headline:'The market correction nobody predicted — what actually happened',pi:1,format:'Static',effort:'M'},
+     {id:'nb8',headline:'3 questions to ask before taking any financial advice',pi:0,format:'Static',effort:'S'},
+     {id:'nb9',headline:'From side hustle to self-employed: your tax checklist for 2026',pi:0,format:'Carousel',effort:'M'},
+     {id:'nb10',headline:'How one client went from zero savings to buying her first property',pi:2,format:'Reel',effort:'L'},
    ]},
   {name:'Bloom Wellness',initials:'BW',industry:'Health & wellness',accent:'#D97706',accentPale:'#FFFBEB',accentText:'#92400E',
    voice:'Warm, empowering, science-grounded. Never preachy.',
@@ -284,6 +308,18 @@ const CLIENTS=[
      {id:'ba2',headline:'Interview: Dr. Lena Park on nervous system regulation',pi:1,format:'Reel',effort:'L',status:'accepted'},
      {id:'bp1',headline:'Morning ritual guide — Spring edition',pi:0,format:'Carousel',effort:'S',status:'placed',date:'2026-05-03'},
      {id:'bp2',headline:'Expert Q&A: sleep and stress connection',pi:1,format:'Static',effort:'M',status:'placed',date:'2026-05-10'},
+   ],
+   ideaBank:[
+     {id:'bb1',headline:'The science behind why journaling actually reduces anxiety',pi:1,format:'Carousel',effort:'M'},
+     {id:'bb2',headline:'3 breathing techniques your nervous system will thank you for',pi:0,format:'Reel',effort:'S'},
+     {id:'bb3',headline:'Community spotlight: Maria\'s 6-month mindfulness transformation',pi:2,format:'Carousel',effort:'M'},
+     {id:'bb4',headline:'What week 5 of our program looks like (real member experience)',pi:3,format:'Reel',effort:'L'},
+     {id:'bb5',headline:'Is your wellness routine actually serving you — or performing wellness?',pi:0,format:'Static',effort:'M'},
+     {id:'bb6',headline:'Dr. Yuen Tan on cortisol, burnout, and the one habit that actually helps',pi:1,format:'Carousel',effort:'L'},
+     {id:'bb7',headline:'You don\'t need 2 hours — here\'s a 12-minute reset that works',pi:0,format:'Reel',effort:'S'},
+     {id:'bb8',headline:'Our community asked: "How do I start when I have no energy?" We answered',pi:2,format:'Static',effort:'S'},
+     {id:'bb9',headline:'Enrollment open: our next cohort starts June 9',pi:3,format:'Carousel',effort:'M'},
+     {id:'bb10',headline:'Sleep, stress, and screens: what the latest research actually says',pi:1,format:'Static',effort:'M'},
    ]}
 ];
 
@@ -430,7 +466,20 @@ function handleAdd(dateKey){switchMode('ideate');}
 function switchClient(ci){S.ac=ci;S.placing=null;closeDetail();save();renderAll();}
 function switchMode(mode){S.mode=mode;save();document.querySelectorAll('.mode-tab').forEach(t=>t.classList.toggle('active',t.textContent.toLowerCase()===mode));document.querySelectorAll('.mode-panel').forEach(p=>p.classList.remove('active'));document.getElementById({strategy:'strategyPanel',ideate:'ideatePanel',calendar:'calendarPanel'}[mode]).classList.add('active');if(mode==='calendar')renderCal();else if(mode==='ideate')renderIdeate();else renderStrategy();}
 function changeMonth(dir){S.month+=dir;if(S.month<0){S.month=11;S.year--;}if(S.month>11){S.month=0;S.year++;}document.getElementById('monthLabel').textContent=`${MN[S.month]} ${S.year}`;save();renderCtx();if(S.mode==='calendar')renderCal();else if(S.mode==='ideate')renderIdeate();}
-function fakeGenerate(btn){const orig=btn.innerHTML;btn.innerHTML='&#8635; Generating&#8230;';btn.disabled=true;setTimeout(()=>{btn.innerHTML=orig;btn.disabled=false;},1400);}
+function generateIdeas(btn){
+  const orig=btn.innerHTML;
+  btn.innerHTML='&#8635; Generating&#8230;';btn.disabled=true;
+  setTimeout(()=>{
+    const ci=S.ac;const cs=S.clients[ci];const c=CLIENTS[ci];
+    const known=new Set([...cs.queue,...cs.accepted,...cs.discarded,...Object.values(cs.placed).flat().map(i=>i.id)]);
+    const available=(c.ideaBank||[]).filter(idea=>!known.has(idea.id));
+    if(available.length===0){btn.innerHTML='✓ All ideas explored';btn.disabled=false;setTimeout(()=>{btn.innerHTML=orig;},2000);return;}
+    const picks=available.sort(()=>Math.random()-.5).slice(0,5);
+    picks.forEach(idea=>{if(!c.allIdeas.find(i=>i.id===idea.id))c.allIdeas.push({...idea,status:'queue'});});
+    cs.queue.push(...picks.map(i=>i.id));
+    save();btn.innerHTML=orig;btn.disabled=false;renderIdeate();renderCtx();
+  },900);
+}
 
 document.addEventListener('DOMContentLoaded',renderAll);
 </script>
